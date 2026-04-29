@@ -1,0 +1,2392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JIALI WU — Exhibition</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Bebas+Neue&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════════════════════
+   JIALI WU — PERSONAL GALLERY WEBSITE
+   Finance · Asset & Risk Management · HEC Lausanne
+   
+   HOW TO PERSONALISE:
+   1. Search for "IMAGE SLOT" and replace with <img> tags
+   2. Search for "ADD PHOTO" placeholder divs and do the same
+   3. Update contact links at the bottom (LinkedIn URL, CV PDF)
+   4. Adjust colors via CSS variables in :root if desired
+   ══════════════════════════════════════════════════════════ */
+
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+
+:root{
+  --ink: #0d0b08;
+  --warm: #f0ebe0;
+  --paper: #f5f0e5;
+  --gold: #9a7230;
+  --gold2: #c4974a;
+  --gold-pale: #e8d5a3;
+  --muted: #7a6e5a;
+  --divider: #cfc0a0;
+  --cream: #faf6ee;
+  --board: #15120a;
+  --ease: cubic-bezier(.16,1,.3,1);
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: 'Cormorant Garamond', serif;
+  background: var(--board);
+  color: var(--ink);
+  cursor: crosshair;
+  position: relative;
+}
+
+/* ══ VIEWPORT SHELL ══ */
+#app {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  perspective: 1200px;
+  perspective-origin: 50% 50%;
+}
+
+/* ══ PAGE TRANSITION SYSTEM ══ */
+.page {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  transform-origin: center center;
+  transition: transform .9s var(--ease), opacity .9s var(--ease);
+  will-change: transform, opacity;
+}
+.page.state-hidden-right {
+  transform: translateX(100%) rotateY(-8deg);
+  opacity: 0;
+  pointer-events: none;
+}
+.page.state-hidden-left {
+  transform: translateX(-60%) scale(.95) rotateY(6deg);
+  opacity: 0;
+  pointer-events: none;
+}
+.page.state-active {
+  transform: translateX(0) rotateY(0deg) scale(1);
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* ══ TICKER TAPE ══ */
+.ticker-wrap {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 800;
+  height: 26px;
+  background: var(--board);
+  border-bottom: .5px solid rgba(154,114,48,.3);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+.ticker-track {
+  display: flex;
+  white-space: nowrap;
+  animation: tick 40s linear infinite;
+  font-family: 'DM Mono', monospace;
+  font-size: .48rem;
+  letter-spacing: .18em;
+  color: rgba(196,151,74,.45);
+}
+.ticker-track b { color: rgba(196,151,74,.7); padding: 0 1.5rem; }
+.ticker-track .g { color: rgba(100,180,120,.6); }
+@keyframes tick {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* ══ INDEX BUTTON (TOP LEFT) ══ */
+#idx-btn {
+  position: fixed;
+  top: 38px; left: 1.8rem;
+  z-index: 900;
+  font-family: 'DM Mono', monospace;
+  font-size: .52rem;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: rgba(196,151,74,.5);
+  background: transparent;
+  border: .5px solid rgba(196,151,74,.2);
+  padding: .45rem .9rem;
+  cursor: pointer;
+  transition: all .3s;
+}
+#idx-btn:hover {
+  color: var(--gold2);
+  border-color: var(--gold);
+}
+
+/* ══ BUY / HOLD MODAL ══ */
+#modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(13,11,8,.78);
+  backdrop-filter: blur(10px);
+  align-items: center;
+  justify-content: center;
+}
+#modal.open {
+  display: flex;
+  animation: mfade .35s ease;
+}
+@keyframes mfade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+#mbox {
+  background: var(--cream);
+  max-width: 400px;
+  width: 88%;
+  position: relative;
+  padding: 3rem 3.5rem;
+  text-align: center;
+  border: .5px solid var(--divider);
+}
+#mbox::before {
+  content: '';
+  position: absolute;
+  inset: 7px;
+  border: .5px solid var(--gold-pale);
+  pointer-events: none;
+}
+.m-sym {
+  font-family: 'DM Mono', monospace;
+  font-size: .5rem;
+  letter-spacing: .32em;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: .6rem;
+}
+.m-price {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 3.2rem;
+  letter-spacing: .06em;
+  color: var(--ink);
+  line-height: 1;
+  margin-bottom: .25rem;
+}
+.m-title {
+  font-size: .95rem;
+  font-style: italic;
+  font-weight: 300;
+  color: var(--muted);
+  margin-bottom: .25rem;
+  line-height: 1.5;
+}
+.m-rule {
+  width: 40px;
+  height: .5px;
+  background: var(--divider);
+  margin: .9rem auto 1.5rem;
+}
+.m-btns {
+  display: flex;
+  gap: .75rem;
+  justify-content: center;
+}
+.m-btn {
+  font-family: 'DM Mono', monospace;
+  font-size: .58rem;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  padding: .85rem 1.8rem;
+  cursor: pointer;
+  border: .5px solid var(--ink);
+  background: var(--cream);
+  color: var(--ink);
+  transition: all .25s;
+  min-width: 110px;
+}
+.m-btn.buy {
+  background: var(--ink);
+  color: var(--cream);
+}
+.m-btn:hover { opacity: .65; }
+
+/* ══════════════════════════════════════════
+   PAGE 0 — OPENING / ENTRANCE
+   Anonymous. No name. Pure atmosphere.
+══════════════════════════════════════════ */
+#p-home { background: var(--board); }
+
+.home-inner {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.home-bg-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(154,114,48,.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(154,114,48,.05) 1px, transparent 1px);
+  background-size: 52px 52px;
+}
+.home-vignette {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 75% 75% at 50% 50%, transparent 35%, rgba(13,11,8,.88) 100%);
+}
+
+/* Corner bracket marks */
+.corner { position: absolute; width: 22px; height: 22px; z-index: 2; }
+.corner.tl { top: 2.5rem; left: 2.5rem; border-top: .5px solid rgba(154,114,48,.3); border-left: .5px solid rgba(154,114,48,.3); }
+.corner.tr { top: 2.5rem; right: 2.5rem; border-top: .5px solid rgba(154,114,48,.3); border-right: .5px solid rgba(154,114,48,.3); }
+.corner.bl { bottom: 2.5rem; left: 2.5rem; border-bottom: .5px solid rgba(154,114,48,.3); border-left: .5px solid rgba(154,114,48,.3); }
+.corner.br { bottom: 2.5rem; right: 2.5rem; border-bottom: .5px solid rgba(154,114,48,.3); border-right: .5px solid rgba(154,114,48,.3); }
+
+.home-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+}
+.home-super {
+  font-family: 'DM Mono', monospace;
+  font-size: .52rem;
+  letter-spacing: .5em;
+  color: rgba(196,151,74,.4);
+  text-transform: uppercase;
+  margin-bottom: 2.5rem;
+  animation: up .8s .2s both;
+}
+.home-line-top {
+  width: .5px; height: 55px;
+  background: linear-gradient(to bottom, transparent, rgba(154,114,48,.4));
+  margin: 0 auto 2rem;
+  animation: up .8s .3s both;
+}
+.home-seal {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(1.2rem, 3vw, 1.8rem);
+  color: rgba(196,151,74,.18);
+  letter-spacing: .6em;
+  animation: up .8s .35s both;
+  margin-bottom: 1.2rem;
+}
+.home-tagline {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(.9rem, 1.5vw, 1.1rem);
+  font-style: italic;
+  font-weight: 300;
+  color: rgba(240,235,224,.3);
+  letter-spacing: .12em;
+  line-height: 2;
+  animation: up .8s .45s both;
+  margin-bottom: 3rem;
+}
+.home-cta {
+  font-family: 'DM Mono', monospace;
+  font-size: .6rem;
+  letter-spacing: .32em;
+  text-transform: uppercase;
+  color: var(--warm);
+  background: transparent;
+  border: .5px solid rgba(154,114,48,.5);
+  padding: .95rem 2.4rem;
+  cursor: pointer;
+  transition: all .4s;
+  position: relative;
+  overflow: hidden;
+  animation: up .8s .6s both;
+}
+.home-cta::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: rgba(154,114,48,.15);
+  transform: translateX(-100%);
+  transition: transform .5s var(--ease);
+  z-index: -1;
+}
+.home-cta:hover::before { transform: translateX(0); }
+.home-cta:hover { border-color: var(--gold2); }
+.home-line-bot {
+  width: .5px; height: 55px;
+  background: linear-gradient(to top, transparent, rgba(154,114,48,.4));
+  margin: 2rem auto 0;
+  animation: up .8s .7s both;
+}
+
+@keyframes up {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ══════════════════════════════════════════
+   PAGE 1 — INDEX (SALON HANG)
+   Irregular photo wall. Greyscale → colour on hover.
+══════════════════════════════════════════ */
+/* ══════════════════════════════════════════
+   CUSTOM CURSOR
+══════════════════════════════════════════ */
+.cursor-dot {
+  position: fixed;
+  width: 6px; height: 6px;
+  background: var(--gold2);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 99999;
+  transform: translate(-50%,-50%);
+  transition: width .2s, height .2s, background .2s;
+}
+.cursor-ring {
+  position: fixed;
+  width: 32px; height: 32px;
+  border: .5px solid rgba(196,151,74,.5);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 99998;
+  transform: translate(-50%,-50%);
+  transition: width .35s var(--ease), height .35s var(--ease), border-color .35s;
+}
+.cursor-ring.expand { width: 52px; height: 52px; border-color: var(--gold2); }
+.cursor-dot.hide { opacity: 0; }
+
+/* ══════════════════════════════════════════
+   ROOM PROGRESS BAR (right edge)
+══════════════════════════════════════════ */
+#progress-bar {
+  position: fixed;
+  right: 0; top: 26px; bottom: 0;
+  width: 2px;
+  background: rgba(154,114,48,.1);
+  z-index: 850;
+}
+#progress-fill {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  background: linear-gradient(to bottom, var(--gold), var(--gold2));
+  height: 0%;
+  transition: height .9s var(--ease);
+}
+#room-label {
+  position: fixed;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: 'DM Mono', monospace;
+  font-size: .42rem;
+  letter-spacing: .25em;
+  color: rgba(196,151,74,.35);
+  text-transform: uppercase;
+  writing-mode: vertical-rl;
+  z-index: 850;
+  transition: opacity .4s;
+}
+
+/* ══════════════════════════════════════════
+   SCROLL FADE-IN
+══════════════════════════════════════════ */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity .7s var(--ease), transform .7s var(--ease);
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ══════════════════════════════════════════
+   PAGE 1 — INDEX
+   Design: full-bleed vertical list.
+   Five numbered rows like an auction lot
+   sheet — each row is a horizontal band
+   that fills the width. Number far left,
+   exhibit name enormous in the centre,
+   a narrow image slit on the right that
+   reveals on hover. A gold rule slides in
+   under the active row. Precise. Quiet.
+   Entirely unlike a normal portfolio.
+══════════════════════════════════════════ */
+#p-index {
+  background: var(--paper);
+}
+
+.index-wrap {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Top meta strip — one line, very small */
+.idx-meta {
+  padding: 3.2rem 3.5rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: .5px solid var(--divider);
+  padding-bottom: 1.2rem;
+}
+.idx-eyebrow {
+  font-family: 'DM Mono', monospace;
+  font-size: .5rem;
+  letter-spacing: .42em;
+  color: var(--gold);
+  text-transform: uppercase;
+}
+.idx-meta-right {
+  font-family: 'DM Mono', monospace;
+  font-size: .46rem;
+  letter-spacing: .2em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+/* The list itself */
+.catalogue-list {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Each row — a lot in the auction sheet */
+.lot-row {
+  position: relative;
+  display: grid;
+  /* lot-num | divider | name+theme | spacer | image-slit */
+  grid-template-columns: 4rem .5px 1fr 3rem 200px;
+  align-items: stretch;
+  border-bottom: .5px solid var(--divider);
+  cursor: pointer;
+  overflow: hidden;
+  transition: background .4s var(--ease);
+  min-height: 0;
+  flex: 1;
+}
+.lot-row:first-child { border-top: .5px solid var(--divider); }
+.lot-row:hover { background: var(--cream); }
+
+/* Gold underline sweep on hover */
+.lot-row::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0;
+  height: 1.5px;
+  width: 0;
+  background: var(--gold);
+  transition: width .55s var(--ease);
+}
+.lot-row:hover::after { width: 100%; }
+
+/* Lot number column */
+.lot-num {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0 0 .5rem;
+}
+.lot-num-inner {
+  font-family: 'DM Mono', monospace;
+  font-size: .48rem;
+  letter-spacing: .3em;
+  color: var(--gold);
+  text-transform: uppercase;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  white-space: nowrap;
+}
+
+/* Thin vertical gold divider between num and name */
+.lot-div {
+  background: var(--divider);
+  width: .5px;
+  transition: background .3s;
+}
+.lot-row:hover .lot-div { background: var(--gold); }
+
+/* Main name + theme area */
+.lot-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 1.5rem 2.5rem;
+  position: relative;
+}
+.lot-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(2.2rem, 4.5vw, 4rem);
+  letter-spacing: .06em;
+  color: var(--ink);
+  line-height: .9;
+  transition: letter-spacing .45s var(--ease), color .3s;
+}
+.lot-row:hover .lot-name {
+  letter-spacing: .12em;
+  color: var(--ink);
+}
+.lot-theme {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: .95rem;
+  font-style: italic;
+  font-weight: 300;
+  color: var(--muted);
+  margin-top: .35rem;
+  opacity: 0;
+  transform: translateX(-8px);
+  transition: opacity .4s .05s, transform .4s .05s;
+}
+.lot-row:hover .lot-theme { opacity: 1; transform: translateX(0); }
+
+/* Arrow — appears on hover */
+.lot-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity .35s, transform .35s var(--ease);
+  transform: translateX(-6px);
+}
+.lot-arrow-inner {
+  font-family: 'DM Mono', monospace;
+  font-size: .55rem;
+  color: var(--gold);
+  letter-spacing: .1em;
+}
+.lot-row:hover .lot-arrow { opacity: 1; transform: translateX(0); }
+
+/* Image slit — right edge, slides open on hover */
+.lot-slit {
+  position: relative;
+  overflow: hidden;
+  background: var(--board);
+  width: 200px;
+}
+/* The image placeholder / real image inside */
+.lot-slit-img {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(160deg, #2a1f0e, #0e0b07);
+  filter: grayscale(60%) sepia(20%);
+  transition: filter .6s var(--ease), transform .6s var(--ease);
+  transform: scale(1.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'DM Mono', monospace;
+  font-size: .38rem;
+  letter-spacing: .18em;
+  color: rgba(196,151,74,.15);
+  text-transform: uppercase;
+  text-align: center;
+  line-height: 2;
+}
+/* Real images dropped inside .lot-slit */
+.lot-slit img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  filter: grayscale(60%) sepia(20%);
+  transition: filter .6s var(--ease), transform .6s var(--ease);
+  transform: scale(1.08);
+}
+.lot-row:hover .lot-slit-img,
+.lot-row:hover .lot-slit img {
+  filter: grayscale(0%) sepia(0%);
+  transform: scale(1);
+}
+
+/* Slit closed by default via clip; opens left on hover */
+.lot-slit::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--paper);
+  transform: scaleX(1);
+  transform-origin: right;
+  transition: transform .55s var(--ease);
+  z-index: 2;
+}
+.lot-row:hover .lot-slit::before {
+  transform: scaleX(0);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .lot-row { grid-template-columns: 3rem .5px 1fr 2rem 120px; }
+  .lot-name { font-size: clamp(1.8rem, 5vw, 2.8rem); }
+}
+@media (max-width: 600px) {
+  .lot-slit { display: none; }
+  .lot-arrow { display: none; }
+  .lot-row { grid-template-columns: 2.5rem .5px 1fr; }
+  .lot-name { font-size: 1.8rem; }
+  .idx-meta { padding: 2rem 1.5rem 1rem; }
+}
+
+/* ══════════════════════════════════════════
+   PAGE 2 — ABOUT / SELF PORTRAIT
+   Dior-style: curtain open → name centre →
+   scroll for photo + text.
+══════════════════════════════════════════ */
+#p-about { background: var(--board); }
+
+/* Curtain hero */
+.about-hero {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+}
+
+.ah-panel {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Replace background with <img> for real photos */
+.ah-panel-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: linear-gradient(150deg, #2a1f0e, #0e0b07);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'DM Mono', monospace;
+  font-size: .45rem;
+  letter-spacing: .22em;
+  color: rgba(196,151,74,.22);
+  text-transform: uppercase;
+  text-align: center;
+  line-height: 2.2;
+}
+
+/* Curtain slide-open animations */
+.ah-left  { animation: curtainL 1.4s var(--ease) .1s both; }
+.ah-right { animation: curtainR 1.4s var(--ease) .1s both; }
+@keyframes curtainL {
+  from { transform: translateX(-8%) scaleX(1.06); }
+  to   { transform: translateX(0) scaleX(1); }
+}
+@keyframes curtainR {
+  from { transform: translateX(8%) scaleX(1.06); }
+  to   { transform: translateX(0) scaleX(1); }
+}
+
+/* Name centred over both panels */
+.ah-name-wrap {
+  position: absolute; inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  pointer-events: none;
+  animation: namefade 1.4s var(--ease) .6s both;
+}
+@keyframes namefade {
+  from { opacity: 0; transform: scale(.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.ah-name-bg {
+  padding: 1.5rem 3rem;
+  position: relative;
+  text-align: center;
+}
+/* mix-blend-mode: difference auto-inverts name against the background photos */
+.ah-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(3.5rem, 9vw, 7.5rem);
+  letter-spacing: .12em;
+  line-height: .9;
+  color: var(--warm);
+  mix-blend-mode: difference;
+}
+.ah-rule { width: 40px; height: .5px; background: var(--gold2); margin: .9rem auto; }
+.ah-title {
+  font-family: 'DM Mono', monospace;
+  font-size: .52rem;
+  letter-spacing: .4em;
+  color: rgba(240,235,224,.55);
+  text-transform: uppercase;
+  margin-top: .2rem;
+  mix-blend-mode: difference;
+}
+.ah-scroll {
+  font-family: 'DM Mono', monospace;
+  font-size: .42rem;
+  letter-spacing: .3em;
+  color: rgba(196,151,74,.4);
+  text-transform: uppercase;
+  margin-top: 1.5rem;
+  animation: blink 2s ease-in-out infinite;
+}
+@keyframes blink {
+  0%,100% { opacity: .4; }
+  50% { opacity: .85; }
+}
+
+/* ── Statement section: two-column grid, text left, portrait right ── */
+.about-scroll {
+  background: var(--cream);
+  border-top: .5px solid rgba(154,114,48,.3);
+  padding: 5rem;
+  display: grid;
+  grid-template-columns: 1fr 240px;
+  gap: 4rem;
+  align-items: start;
+}
+.as-text-col {
+  /* left column: eyebrow + opener + body paragraphs */
+}
+.as-eyebrow {
+  font-family: 'DM Mono', monospace;
+  font-size: .48rem;
+  letter-spacing: .35em;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+}
+/* Opening italic line — visually distinct from body */
+.as-opener {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.55rem;
+  font-style: italic;
+  font-weight: 300;
+  color: var(--ink);
+  line-height: 1.5;
+  letter-spacing: .04em;
+  border-bottom: .5px solid var(--divider);
+  padding-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+.as-body {
+  font-size: .98rem;
+  font-weight: 300;
+  line-height: 1.95;
+  color: #3a3020;
+}
+.as-body p { margin-bottom: 1.2rem; }
+.as-body p:last-child { margin-bottom: 0; }
+
+/* Portrait window — right column, fixed width, sits alongside the three paragraphs */
+.as-portrait-window {
+  position: sticky;
+  top: 3rem;
+}
+.as-portrait-frame {
+  width: 100%;
+  aspect-ratio: 3/4;
+  overflow: hidden;
+  background: var(--board);
+  border: 6px solid var(--paper);
+  box-shadow:
+    0 8px 28px rgba(13,11,8,.18),
+    0 2px 6px rgba(13,11,8,.1),
+    inset 0 0 0 .5px var(--divider);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* Real portrait: place <img> inside .as-portrait-frame */
+.as-portrait-frame img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.as-portrait-ph {
+  font-family: 'DM Mono', monospace;
+  font-size: .38rem;
+  letter-spacing: .18em;
+  color: rgba(196,151,74,.22);
+  text-transform: uppercase;
+  text-align: center;
+  line-height: 2.2;
+  padding: 1rem;
+}
+.as-portrait-cap {
+  margin-top: .6rem;
+  text-align: center;
+  font-family: 'DM Mono', monospace;
+  font-size: .38rem;
+  letter-spacing: .2em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+@media (max-width: 768px) {
+  .about-scroll {
+    grid-template-columns: 1fr;
+    padding: 3rem 2rem;
+    gap: 2.5rem;
+  }
+  .as-portrait-window { position: static; width: 160px; margin: 0 auto; }
+}
+
+/* Skills section */
+.skills-section {
+  background: var(--paper);
+  padding: 4rem;
+  border-top: .5px solid var(--divider);
+}
+.sk-label {
+  font-family: 'DM Mono', monospace;
+  font-size: .48rem;
+  letter-spacing: .3em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+  padding-bottom: .5rem;
+  border-bottom: .5px solid var(--divider);
+}
+.sk-row { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: 2.5rem; }
+.sk-tag {
+  font-family: 'DM Mono', monospace;
+  font-size: .46rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  padding: .3rem .75rem;
+  border: .5px solid var(--divider);
+  color: var(--muted);
+  transition: color .25s, border-color .25s, background .25s, transform .2s var(--ease), box-shadow .25s;
+  cursor: default;
+}
+.sk-tag:hover {
+  color: var(--gold2);
+  border-color: var(--gold);
+  background: rgba(196,151,74,.06);
+  transform: translateY(-2px);
+  box-shadow: 0 3px 10px rgba(154,114,48,.12);
+}
+.sk-tag.g {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+.sk-tag.g:hover {
+  background: rgba(196,151,74,.1);
+  color: var(--gold2);
+  box-shadow: 0 3px 12px rgba(154,114,48,.18);
+}
+
+/* ══════════════════════════════════════════
+   SHARED EXHIBIT ELEMENTS
+══════════════════════════════════════════ */
+/* Dark hero band at top of each exhibit page */
+.exh-hero-band {
+  background: var(--board);
+  margin: -5.5rem -4.5rem 3.5rem;
+  padding: 5.5rem 4.5rem 3rem;
+  border-bottom: .5px solid var(--gold);
+  position: relative;
+  overflow: hidden;
+}
+.ehb-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(154,114,48,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(154,114,48,.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+.ehb-inner {
+  position: relative; z-index: 2;
+  display: flex;
+  align-items: flex-end;
+  gap: 2.5rem;
+}
+.ehb-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(5rem, 10vw, 8rem);
+  color: rgba(154,114,48,.15);
+  line-height: .85;
+}
+.ehb-eye {
+  font-family: 'DM Mono', monospace;
+  font-size: .48rem;
+  letter-spacing: .32em;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: .6rem;
+}
+.ehb-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(2rem, 4vw, 3rem);
+  letter-spacing: .05em;
+  color: var(--warm);
+  line-height: 1;
+  margin-bottom: .6rem;
+}
+.ehb-theme {
+  font-size: .9rem;
+  font-style: italic;
+  color: rgba(240,235,224,.45);
+  line-height: 1.7;
+  max-width: 480px;
+}
+
+/* Museum wall placard */
+.placard {
+  border-left: 2px solid var(--gold);
+  padding: 1.2rem 2rem;
+  background: var(--cream);
+  border-top: .5px solid var(--divider);
+  border-right: .5px solid var(--divider);
+  border-bottom: .5px solid var(--divider);
+  margin-bottom: 3rem;
+}
+.pl-lbl {
+  font-family: 'DM Mono', monospace;
+  font-size: .45rem;
+  letter-spacing: .28em;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: .45rem;
+}
+.pl-txt {
+  font-size: .95rem;
+  font-style: italic;
+  font-weight: 300;
+  line-height: 1.85;
+  color: var(--ink);
+}
+
+/* Two-column layout */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  margin-bottom: 3rem;
+}
+
+/* Typography components */
+.blbl {
+  font-family: 'DM Mono', monospace;
+  font-size: .45rem;
+  letter-spacing: .28em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: .8rem;
+  padding-bottom: .5rem;
+  border-bottom: .5px solid var(--divider);
+}
+.btitle { font-size: 1.1rem; font-weight: 500; margin-bottom: .22rem; }
+.bsub   { font-size: .82rem; font-style: italic; color: var(--gold); margin-bottom: .5rem; }
+.btext  { font-size: .9rem; font-weight: 300; line-height: 1.85; color: #3a3020; }
+
+/* Timeline */
+.tline { position: relative; padding-left: 1.8rem; }
+.tline::before {
+  content: '';
+  position: absolute;
+  left: .5rem; top: .4rem; bottom: 0;
+  width: .5px;
+  background: var(--divider);
+}
+.titem { position: relative; padding-bottom: 2.2rem; }
+.titem::before {
+  content: '';
+  position: absolute;
+  left: -1.4rem; top: .42rem;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--gold);
+  border: 1.5px solid var(--paper);
+}
+
+/* Tags — used across all exhibit pages */
+.trow { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .7rem; }
+.tag {
+  font-family: 'DM Mono', monospace;
+  font-size: .43rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  padding: .28rem .65rem;
+  border: .5px solid var(--divider);
+  color: var(--muted);
+  transition: color .22s, border-color .22s, background .22s, transform .18s var(--ease), box-shadow .22s;
+  cursor: default;
+}
+.tag:hover {
+  color: var(--gold2);
+  border-color: var(--gold);
+  background: rgba(196,151,74,.06);
+  transform: translateY(-2px);
+  box-shadow: 0 3px 10px rgba(154,114,48,.1);
+}
+.tag.g {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+.tag.g:hover {
+  background: rgba(196,151,74,.1);
+  color: var(--gold2);
+  box-shadow: 0 3px 12px rgba(154,114,48,.16);
+}
+
+/* PROCEED TO NEXT ROOM — bottom right of each page */
+.proceed-zone {
+  position: relative;
+  padding: 2.5rem 4rem 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2rem;
+  border-top: .5px solid var(--divider);
+}
+.proceed-line {
+  flex: 1;
+  height: .5px;
+  background: linear-gradient(to right, var(--divider), transparent);
+}
+.proceed-label {
+  font-family: 'DM Mono', monospace;
+  font-size: .46rem;
+  letter-spacing: .2em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+.proceed-btn {
+  font-family: 'DM Mono', monospace;
+  font-size: .58rem;
+  letter-spacing: .26em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: var(--cream);
+  border: .5px solid var(--ink);
+  padding: .95rem 2rem;
+  cursor: pointer;
+  transition: all .3s;
+  white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+}
+.proceed-btn::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: var(--ink);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform .4s;
+  z-index: -1;
+}
+.proceed-btn:hover::before { transform: scaleX(1); }
+.proceed-btn:hover { color: var(--cream); border-color: var(--ink); }
+
+/* Data strip */
+.data-strip {
+  display: flex;
+  border: .5px solid var(--divider);
+  margin-bottom: 3rem;
+  background: var(--cream);
+}
+.ds-item {
+  flex: 1;
+  padding: 1.3rem 1.2rem;
+  border-right: .5px solid var(--divider);
+  text-align: center;
+}
+.ds-item:last-child { border-right: none; }
+.ds-n {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2.2rem;
+  color: var(--gold);
+  letter-spacing: .05em;
+  display: block;
+  line-height: 1;
+  margin-bottom: .2rem;
+}
+.ds-c {
+  font-family: 'DM Mono', monospace;
+  font-size: .42rem;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ══════════════════════════════════════════
+   PAGE 3 — EDUCATION (THE ATELIER)
+══════════════════════════════════════════ */
+#p-edu { background: var(--paper); }
+.edu-wrap { padding: 5.5rem 4.5rem 3rem; max-width: 1100px; margin: 0 auto; }
+
+/* ══════════════════════════════════════════
+   PAGE 4 — EXPERIENCE (THE LEDGER)
+══════════════════════════════════════════ */
+#p-exp { background: var(--paper); }
+.exp-wrap { padding: 5.5rem 4.5rem 3rem; max-width: 900px; margin: 0 auto; }
+
+/* ══════════════════════════════════════════
+   PAGE 5 — HOBBIES (AFTER HOURS)
+   Sport: single feature card
+   Drawing & Photography: each has its own
+   mini sub-exhibition with a work grid.
+══════════════════════════════════════════ */
+#p-hobbies { background: var(--paper); }
+.hobbies-wrap { padding: 5.5rem 4.5rem 4rem; max-width: 1200px; margin: 0 auto; }
+
+/* ── Sport: hero feature card ── */
+.sport-card {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  border: .5px solid var(--divider);
+  margin-bottom: 4rem;
+  background: var(--cream);
+  transition: background .3s;
+}
+.sport-card:hover { background: var(--warm); }
+.sport-photo {
+  width: 100%;
+  min-height: 320px;
+  position: relative;
+  overflow: hidden;
+  background: var(--board);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right: .5px solid var(--divider);
+}
+.sport-photo img { width:100%; height:100%; object-fit:cover; position:absolute; inset:0; }
+.sport-ph {
+  font-family: 'DM Mono', monospace;
+  font-size: .42rem;
+  letter-spacing: .2em;
+  color: rgba(196,151,74,.22);
+  text-transform: uppercase;
+  text-align: center;
+  line-height: 2.2;
+  position: relative; z-index: 2;
+}
+.sport-body {
+  padding: 3rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.hb-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 3.5rem;
+  color: var(--gold-pale);
+  opacity: .35;
+  line-height: 1;
+  margin-bottom: .6rem;
+}
+.hb-name { font-size: 1.3rem; font-weight: 500; margin-bottom: .4rem; }
+.hb-desc { font-size: .9rem; font-style: italic; color: var(--muted); line-height: 1.7; }
+.hb-detail { margin-top: 1rem; font-size: .9rem; font-weight: 300; line-height: 1.85; color: #4a3e2e; }
+.hb-add {
+  margin-top: 1.4rem;
+  font-family: 'DM Mono', monospace;
+  font-size: .4rem;
+  letter-spacing: .2em;
+  color: rgba(154,114,48,.35);
+  text-transform: uppercase;
+  border-top: .5px solid var(--divider);
+  padding-top: .8rem;
+}
+
+/* ── Sub-exhibition section header ── */
+.sub-exh {
+  margin-bottom: 4rem;
+}
+.sub-exh-header {
+  display: flex;
+  align-items: flex-end;
+  gap: 2.5rem;
+  border-bottom: .5px solid var(--divider);
+  padding-bottom: 1.2rem;
+  margin-bottom: 2rem;
+}
+.sub-exh-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(3rem, 7vw, 5.5rem);
+  color: rgba(154,114,48,.12);
+  line-height: .85;
+}
+.sub-exh-text {}
+.sub-exh-eye {
+  font-family: 'DM Mono', monospace;
+  font-size: .46rem;
+  letter-spacing: .32em;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: .35rem;
+}
+.sub-exh-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+  letter-spacing: .05em;
+  color: var(--ink);
+  line-height: 1;
+  margin-bottom: .3rem;
+}
+.sub-exh-theme {
+  font-size: .85rem;
+  font-style: italic;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+/* Artist statement for sub-exhibition */
+.sub-exh-statement {
+  font-size: .95rem;
+  font-weight: 300;
+  font-style: italic;
+  line-height: 1.9;
+  color: #3a3020;
+  max-width: 640px;
+  margin-bottom: 2.5rem;
+  padding-left: 1.5rem;
+  border-left: 2px solid var(--gold);
+}
+
+/* Works grid — gallery of pieces */
+.works-grid {
+  display: grid;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+}
+.works-grid.col3 { grid-template-columns: repeat(3, 1fr); }
+.works-grid.col4 { grid-template-columns: repeat(4, 1fr); }
+
+/* Individual work/piece */
+.work-piece {
+  position: relative;
+  cursor: default;
+}
+
+.work-frame {
+  position: relative;
+  overflow: hidden;
+  background: var(--board);
+  border: 6px solid var(--cream);
+  box-shadow: 0 4px 18px rgba(13,11,8,.15), inset 0 0 0 .5px var(--divider);
+}
+
+/* --- 核心修改：基础样式 --- */
+.work-frame img {
+  width: 100% !important;
+  display: block !important;
+  object-fit: cover !important;
+  /* 默认不加滤镜，这样画作（Drawing）就是彩色的 */
+  filter: none !important; 
+  transition: transform .6s ease, filter .5s ease !important;
+}
+
+/* --- 核心修改：仅针对摄影作品的黑白滤镜 --- */
+/* 只有在 HTML 里加了 class="ethereal-photo" 的图片才会变成黑白 */
+.work-frame img.ethereal-photo {
+  filter: grayscale(100%) !important;
+}
+
+/* --- 核心修改：悬浮交互 --- */
+/* 摄影作品悬浮：变彩色 + 放大 */
+.work-piece:hover .work-frame img.ethereal-photo {
+  filter: grayscale(0%) !important;
+  transform: scale(1.04) !important;
+}
+
+/* 画作（或其他普通图片）悬浮：仅放大，不改变颜色 */
+.work-piece:hover .work-frame img:not(.ethereal-photo) {
+  transform: scale(1.04) !important;
+}
+
+/* Placeholder for works */
+.work-ph {
+  width: 100%;
+  background: linear-gradient(150deg, #221a0e, #120e06);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'DM Mono', monospace;
+  font-size: .38rem;
+  letter-spacing: .2em;
+  color: rgba(196,151,74,.18);
+  text-transform: uppercase;
+  text-align: center;
+  line-height: 2;
+  padding: 1.5rem;
+  transition: color .4s;
+}
+.work-piece:hover .work-ph { color: rgba(196,151,74,.45); }
+
+/* Piece caption */
+.work-caption {
+  padding: .6rem .2rem .2rem;
+}
+.work-cap-title {
+  font-size: .82rem;
+  font-weight: 500;
+  color: var(--ink);
+  line-height: 1.3;
+}
+.work-cap-meta {
+  font-family: 'DM Mono', monospace;
+  font-size: .4rem;
+  letter-spacing: .18em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-top: .2rem;
+}
+
+/* Featured wide piece */
+.work-piece.wide { grid-column: span 2; }
+.work-piece.wide .work-ph { aspect-ratio: 2/1; }
+
+/* Add-work prompt */
+.add-work-prompt {
+  font-family: 'DM Mono', monospace;
+  font-size: .42rem;
+  letter-spacing: .2em;
+  color: rgba(154,114,48,.3);
+  text-transform: uppercase;
+  text-align: center;
+  padding: 1.5rem;
+  border: .5px dashed rgba(154,114,48,.2);
+  margin-top: .5rem;
+}
+
+/* ══════════════════════════════════════════
+   PAGE 6 — CONTACT / EXIT HALL
+══════════════════════════════════════════ */
+#p-contact { background: var(--board); }
+.contact-inner {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6rem 2rem 4rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.contact-inner::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(154,114,48,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(154,114,48,.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+.ci-eye {
+  font-family: 'DM Mono', monospace;
+  font-size: .5rem;
+  letter-spacing: .4em;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+  position: relative; z-index: 2;
+}
+.ci-rule {
+  width: .5px; height: 50px;
+  background: linear-gradient(to bottom, transparent, var(--gold));
+  margin: 0 auto 1.5rem;
+  position: relative; z-index: 2;
+}
+.ci-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(3.5rem, 9vw, 6.5rem);
+  letter-spacing: .06em;
+  color: var(--warm);
+  line-height: .9;
+  margin-bottom: 1rem;
+  position: relative; z-index: 2;
+}
+.ci-sub {
+  font-size: .95rem;
+  font-style: italic;
+  color: rgba(240,235,224,.4);
+  margin-bottom: 3rem;
+  max-width: 380px;
+  line-height: 1.85;
+  position: relative; z-index: 2;
+}
+.ci-links {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  position: relative; z-index: 2;
+}
+.ci-lnk {
+  font-family: 'DM Mono', monospace;
+  font-size: .58rem;
+  letter-spacing: .2em;
+  color: var(--gold2);
+  text-transform: uppercase;
+  border-bottom: .5px solid var(--gold);
+  padding-bottom: .25rem;
+  cursor: pointer;
+  transition: opacity .2s;
+  text-decoration: none;
+}
+.ci-lnk:hover { opacity: .5; }
+.ci-restart {
+  margin-top: 4rem;
+  font-family: 'DM Mono', monospace;
+  font-size: .52rem;
+  letter-spacing: .28em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: transparent;
+  border: .5px solid rgba(154,114,48,.22);
+  padding: .85rem 1.8rem;
+  cursor: pointer;
+  transition: all .3s;
+  position: relative; z-index: 2;
+}
+.ci-restart:hover { border-color: var(--gold); color: var(--gold); }
+
+/* ══ RESPONSIVE ══ */
+@media (max-width: 900px) {
+  .works-grid.col3 { grid-template-columns: 1fr 1fr; }
+  .works-grid.col4 { grid-template-columns: 1fr 1fr; }
+  .sport-card { grid-template-columns: 1fr; }
+  .sport-photo { min-height: 220px; border-right: none; border-bottom: .5px solid var(--divider); }
+}
+@media (max-width: 768px) {
+  .about-scroll { grid-template-columns: 1fr; }
+  .as-left { min-height: 260px; }
+  .as-right { padding: 3rem 2rem; }
+  .two-col { grid-template-columns: 1fr; gap: 2rem; }
+  .edu-wrap, .exp-wrap, .hobbies-wrap { padding: 5.5rem 2rem 2rem; }
+  .exh-hero-band { margin: -5.5rem -2rem 3rem; padding: 5.5rem 2rem 2.5rem; }
+  .skills-section { padding: 3rem 2rem; }
+  .proceed-zone { padding: 2rem; }
+  .data-strip { flex-wrap: wrap; }
+  .ds-item { flex: 1 1 40%; }
+  .works-grid.col3 { grid-template-columns: 1fr; }
+  .works-grid.col4 { grid-template-columns: 1fr 1fr; }
+  .work-piece.wide { grid-column: span 1; }
+  .work-piece.wide .work-ph { aspect-ratio: 4/3; }
+  #progress-bar, #room-label { display: none; }
+  .cursor-dot, .cursor-ring { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══ CUSTOM CURSOR ══ -->
+<div class="cursor-dot" id="cur-dot"></div>
+<div class="cursor-ring" id="cur-ring"></div>
+
+<!-- ══ PROGRESS BAR (right edge) ══ -->
+<div id="progress-bar"><div id="progress-fill"></div></div>
+<div id="room-label">Room <span id="room-num">1</span> / 6</div>
+
+<!-- ══ TICKER TAPE ══ -->
+<div class="ticker-wrap">
+  <div class="ticker-track" id="ticker-t"></div>
+</div>
+
+<!-- ══ INDEX BUTTON (top left) ══ -->
+<button id="idx-btn" onclick="goTo('p-index')">↩ Index</button>
+
+<!-- ══ BUY / HOLD MODAL ══ -->
+<div id="modal">
+  <div id="mbox">
+    <div class="m-sym" id="msym">JW · EXHIBIT</div>
+    <div class="m-price" id="mprice">BUY</div>
+    <div class="m-title" id="mtitle">Proceed to next room?</div>
+    <div class="m-rule"></div>
+    <div class="m-btns">
+      <button class="m-btn" onclick="modalHold()">Hold</button>
+      <button class="m-btn buy" onclick="modalBuy()">Buy →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     APPLICATION SHELL
+══════════════════════════════════════════════════════════ -->
+<div id="app">
+
+  <!-- ══ PAGE 0: HOME ══ -->
+  <div class="page state-active" id="p-home">
+    <div class="home-inner">
+      <div class="home-bg-grid"></div>
+      <div class="home-vignette"></div>
+      <div class="corner tl"></div>
+      <div class="corner tr"></div>
+      <div class="corner bl"></div>
+      <div class="corner br"></div>
+      <div class="home-content">
+        <div class="home-super">A Solo Exhibition &nbsp;·&nbsp; Personal Works</div>
+        <div class="home-line-top"></div>
+        <div class="home-seal">MMXXVI · Lausanne · Switzerland</div>
+        <div class="home-tagline">
+          Where the discipline of capital<br>
+          meets the clarity of art.
+        </div>
+        <button class="home-cta" onclick="goTo('p-index')">Enter the Gallery</button>
+        <div class="home-line-bot"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PAGE 1: INDEX — CATALOGUE LIST ══ -->
+  <div class="page state-hidden-right" id="p-index">
+    <div class="index-wrap">
+
+      <!-- One-line meta header -->
+      <div class="idx-meta">
+        <div class="idx-eyebrow">Exhibition Catalogue &nbsp;·&nbsp; Jiali Wu &nbsp;·&nbsp; MMXXVI</div>
+        <div class="idx-meta-right">HEC Lausanne &nbsp;·&nbsp; MSc Finance</div>
+      </div>
+
+      <!-- Five lot rows -->
+      <div class="catalogue-list">
+
+        <!-- Lot I -->
+        <div class="lot-row" onclick="modal('p-about','EX·I','SELF PORTRAIT')">
+          <div class="lot-num">
+            <div class="lot-num-inner">Exhibit I</div>
+          </div>
+          <div class="lot-div"></div>
+          <div class="lot-body">
+            <div class="lot-name">Self Portrait</div>
+            <div class="lot-theme">Identity · Philosophy · Skills · Languages</div>
+          </div>
+          <div class="lot-arrow"><div class="lot-arrow-inner">→</div></div>
+          <div class="lot-slit">
+            <!--
+              TO ADD IMAGE: place <img src="your-photo.jpg" alt=""> inside .lot-slit
+              It will be revealed with a curtain-open effect on hover.
+            -->
+          </div>
+        </div>
+
+        <!-- Lot II -->
+        <div class="lot-row" onclick="modal('p-edu','EX·II','THE ATELIER')">
+          <div class="lot-num">
+            <div class="lot-num-inner">Exhibit II</div>
+          </div>
+          <div class="lot-div"></div>
+          <div class="lot-body">
+            <div class="lot-name">The Atelier</div>
+            <div class="lot-theme">Degrees · Research · Projects · HEC Lausanne</div>
+          </div>
+          <div class="lot-arrow"><div class="lot-arrow-inner">→</div></div>
+          <div class="lot-slit">
+          </div>
+        </div>
+
+        <!-- Lot III -->
+        <div class="lot-row" onclick="modal('p-exp','EX·III','THE LEDGER')">
+          <div class="lot-num">
+            <div class="lot-num-inner">Exhibit III</div>
+          </div>
+          <div class="lot-div"></div>
+          <div class="lot-body">
+            <div class="lot-name">The Ledger</div>
+            <div class="lot-theme">Experience · Timeline · Two Continents · Six Roles</div>
+          </div>
+          <div class="lot-arrow"><div class="lot-arrow-inner">→</div></div>
+          <div class="lot-slit">
+          </div>
+        </div>
+
+        <!-- Lot IV -->
+        <div class="lot-row" onclick="modal('p-hobbies','EX·IV','AFTER HOURS')">
+          <div class="lot-num">
+            <div class="lot-num-inner">Exhibit IV</div>
+          </div>
+          <div class="lot-div"></div>
+          <div class="lot-body">
+            <div class="lot-name">After Hours</div>
+            <div class="lot-theme">Sport · Drawing · Photography</div>
+          </div>
+          <div class="lot-arrow"><div class="lot-arrow-inner">→</div></div>
+          <div class="lot-slit">
+          </div>
+        </div>
+
+        <!-- Lot V -->
+        <div class="lot-row" onclick="modal('p-contact','EX·V','EXIT HALL')">
+          <div class="lot-num">
+            <div class="lot-num-inner">Exhibit V</div>
+          </div>
+          <div class="lot-div"></div>
+          <div class="lot-body">
+            <div class="lot-name">Exit Hall</div>
+            <div class="lot-theme">Contact · Collaboration · Acquisition</div>
+          </div>
+          <div class="lot-arrow"><div class="lot-arrow-inner">→</div></div>
+          <div class="lot-slit">
+          </div>
+        </div>
+
+      </div><!-- /catalogue-list -->
+    </div>
+  </div>
+
+  <!-- ══ PAGE 2: ABOUT / SELF PORTRAIT ══ -->
+  <div class="page state-hidden-right" id="p-about">
+
+    <!-- Dior-style curtain hero: two panels + centred name -->
+    <div class="about-hero">
+
+      <!-- Left panel — replace inner div with <img> -->
+      <div class="ah-panel ah-left">
+        <!--
+          TO ADD IMAGE: replace this div with:
+          <img src="photo-left.jpg" alt="Jiali Wu" style="width:100%;height:100%;object-fit:cover;">
+        -->
+        <div class="ah-panel-img">
+          <img src="left.jpg" alt="Jiali Wu" style="width:100%; height:100%; object-fit:cover; filter: grayscale(100%) sepia(10%) contrast(110%);">
+        </div>
+      </div>
+
+      <!-- Right panel — replace inner div with <img> -->
+      <div class="ah-panel ah-right">
+  <div class="ah-panel-img">
+    <img src="right.jpg" alt="Jiali Wu" 
+         style="width:100%; height:100%; object-fit:cover; 
+                filter: grayscale(100%) contrast(110%); 
+                mix-blend-mode: multiply; 
+                opacity: 0.8;">
+  </div>
+</div>
+
+      <!-- Name overlay with mix-blend-mode: difference (auto-inverts) -->
+      <div class="ah-name-wrap">
+        <div class="ah-name-bg">
+          <div class="ah-name">JIALI<br>WU</div>
+          <div class="ah-rule"></div>
+          <div class="ah-title">MSc Finance · Asset &amp; Risk Management · HEC Lausanne</div>
+          <div class="ah-scroll">↓ scroll to enter</div>
+        </div>
+      </div>
+
+    </div><!-- /about-hero -->
+
+    <!-- Statement section: text left, portrait right -->
+    <div class="about-scroll">
+
+      <!-- LEFT: text column -->
+      <div class="as-text-col">
+        <div class="as-eyebrow">Exhibit I — Self Portrait · Artist Statement</div>
+        <div class="as-opener">She does not merely observe numbers; she interrogates them.</div>
+        <div class="as-body">
+          <p>Based in Switzerland and pursuing her Master's at HEC Lausanne, she has built a professional identity at the intersection of data-driven strategy and real-world execution. Her dual-continent background in Economic Statistics and Financial Management allows her to navigate between granular mechanics and broad business ecosystems.</p>
+          <p>What defines her is an insatiable curiosity that extends beyond the classroom into investment syndicates and competitive arenas. She views the financial markets as a living laboratory for how businesses compete and evolve.</p>
+          <p>A self-driven practitioner, she is drawn to environments where analytical rigour meets tangible influence. Beyond the technical, she possesses a rare tilt toward financial storytelling — refining the art of translating intricate economic concepts into compelling narratives. In her world, data informs, but clarity inspires.</p>
+        </div>
+      </div>
+
+      <!-- RIGHT: portrait window, sticky alongside the paragraphs -->
+      <div class="as-portrait-window">
+        <div class="as-portrait-frame">
+          <!--
+            TO ADD PORTRAIT: replace this div with:
+            <img src="portrait.jpg" alt="Jiali Wu">
+          -->
+          <div class="as-portrait-frame">
+            <img src="portrait.JPG" alt="Jiali Wu" style="width:100%; height:auto;">
+          </div>
+        </div>
+        <div class="as-portrait-cap">Jiali Wu · MMXXVI</div>
+      </div>
+
+    </div>
+
+    <!-- Skills -->
+    <div class="skills-section">
+      <div class="sk-label">Technical Arsenal</div>
+      <div class="sk-row">
+        <span class="sk-tag g">Python</span>
+        <span class="sk-tag g">R</span>
+        <span class="sk-tag g">Excel / VBA</span>
+        <span class="sk-tag g">GARCH Modelling</span>
+        <span class="sk-tag g">Monte Carlo Simulation</span>
+        <span class="sk-tag g">VaR Optimisation</span>
+        <span class="sk-tag g">Markowitz MVO</span>
+        <span class="sk-tag g">Black-Litterman</span>
+        <span class="sk-tag">Statistical Analysis</span>
+        <span class="sk-tag">Portfolio Risk</span>
+        <span class="sk-tag">Bloomberg</span>
+        <span class="sk-tag">Audio / Video Editing</span>
+      </div>
+      <div class="sk-label">Soft Skills</div>
+      <div class="sk-row">
+        <span class="sk-tag">Leadership</span>
+        <span class="sk-tag">Creativity</span>
+        <span class="sk-tag">Critical Thinking</span>
+        <span class="sk-tag">Project Execution</span>
+        <span class="sk-tag">Adaptability under Pressure</span>
+        <span class="sk-tag">Financial Storytelling</span>
+      </div>
+      <div class="sk-label">Languages</div>
+      <div class="sk-row">
+        <span class="sk-tag g">Chinese — Native</span>
+        <span class="sk-tag g">English — Proficient</span>
+        <span class="sk-tag g">French — Fluent</span>
+        <span class="sk-tag g">German — Basic</span>
+      </div>
+    </div>
+
+    <div class="proceed-zone" style="background:var(--paper);">
+      <div class="proceed-line"></div>
+      <div class="proceed-label">Next · Exhibit II</div>
+      <button class="proceed-btn" onclick="modal('p-edu','EX·II','THE ATELIER')">Proceed to Next Room</button>
+    </div>
+
+  </div><!-- /p-about -->
+
+  <!-- ══ PAGE 3: EDUCATION / THE ATELIER ══ -->
+  <div class="page state-hidden-right" id="p-edu">
+    <div class="edu-wrap">
+
+      <div class="exh-hero-band">
+        <div class="ehb-grid"></div>
+        <div class="ehb-inner">
+          <div class="ehb-num">II</div>
+          <div class="ehb-text">
+            <div class="ehb-eye">Exhibit II — The Atelier</div>
+            <div class="ehb-title">Academic Formation</div>
+            <div class="ehb-theme">The institutions that forged the method, and the research born within them.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="placard">
+        <div class="pl-lbl">Curatorial Note</div>
+        <div class="pl-txt">"Academic training in finance is not merely the acquisition of technique — it is the cultivation of a particular way of seeing: probabilistic, patient, and precise."</div>
+      </div>
+
+      <div class="two-col">
+        <!-- Degrees -->
+        <div>
+          <div class="blbl">Degrees &amp; Institutions</div>
+          <div class="tline">
+            <div class="titem">
+              <div class="btitle">MSc Finance — Asset &amp; Risk Management</div>
+              <div class="bsub">HEC Lausanne · 2024 – 2026</div>
+              <div class="btext">Specialisation in quantitative portfolio management, asset pricing, and financial risk. Core focus on GARCH-based risk models, Monte Carlo methods, and ESG-integrated asset allocation.</div>
+              <div class="trow">
+                <span class="tag g">Quant Finance</span>
+                <span class="tag g">Risk Modelling</span>
+                <span class="tag">Asset Pricing</span>
+              </div>
+            </div>
+            <div class="titem">
+              <div class="btitle">Bachelor of Economic Statistics</div>
+              <div class="bsub">Minnan Normal University · 2014 – 2018</div>
+              <div class="btext">Foundation in statistical methodology, macroeconomics, and financial management. Developed rigorous quantitative instincts applied across data-heavy analytical contexts.</div>
+              <div class="trow">
+                <span class="tag g">Statistics</span>
+                <span class="tag">Econometrics</span>
+                <span class="tag">Finance</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Research Projects -->
+        <div>
+          <div class="blbl">Research Projects</div>
+          <div class="tline">
+            <div class="titem">
+              <div class="btitle">Quantitative Risk Modelling — VaR Optimisation</div>
+              <div class="bsub">HEC Lausanne · Sep – Dec 2024</div>
+              <div class="btext">Built a GARCH-based Monte Carlo framework to estimate Value at Risk and compare portfolio strategies (MVO vs. Equal-Weight). Assessed tail risk and fat-tail effects using S&amp;P 100 data.</div>
+              <div class="trow">
+                <span class="tag g">GARCH(1,1)</span>
+                <span class="tag g">Python</span>
+                <span class="tag">R</span>
+                <span class="tag">Monte Carlo</span>
+              </div>
+            </div>
+            <div class="titem">
+              <div class="btitle">Asset Allocation with a Carbon Objective</div>
+              <div class="bsub">HEC Lausanne · Mar – Jun 2025</div>
+              <div class="btext">Built a Python framework integrating carbon emission limits into MVP optimisation with rolling 10-year windows. Developed carbon-active/passive strategies toward a net-zero trajectory.</div>
+              <div class="trow">
+                <span class="tag g">ESG</span>
+                <span class="tag g">Python</span>
+                <span class="tag">Sharpe Ratio</span>
+              </div>
+            </div>
+            <div class="titem">
+              <div class="btitle">Portfolio Optimisation &amp; Sentiment Analysis</div>
+              <div class="bsub">HEC Lausanne · Sep – Dec 2025</div>
+              <div class="btext">Implemented Markowitz MVO, Black-Litterman, risk parity (ERC), and resampling techniques in Python. Launched an investor-facing web tool for users with varied risk preferences.</div>
+              <div class="trow">
+                <span class="tag g">Black-Litterman</span>
+                <span class="tag g">ERC</span>
+                <span class="tag">Web App</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div><!-- /two-col -->
+
+    </div><!-- /edu-wrap -->
+
+    <div class="proceed-zone">
+      <div class="proceed-line"></div>
+      <div class="proceed-label">Next · Exhibit III</div>
+      <button class="proceed-btn" onclick="modal('p-exp','EX·III','THE LEDGER')">Proceed to Next Room</button>
+    </div>
+  </div><!-- /p-edu -->
+
+  <!-- ══ PAGE 4: EXPERIENCE / THE LEDGER ══ -->
+  <div class="page state-hidden-right" id="p-exp">
+    <div class="exp-wrap">
+
+      <div class="exh-hero-band">
+        <div class="ehb-grid"></div>
+        <div class="ehb-inner">
+          <div class="ehb-num">III</div>
+          <div class="ehb-text">
+            <div class="ehb-eye">Exhibit III — The Ledger</div>
+            <div class="ehb-title">Professional Record</div>
+            <div class="ehb-theme">A chronicle of value accrued across two continents, three industries, and six roles.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="data-strip">
+        <div class="ds-item"><span class="ds-n">6+</span><span class="ds-c">Roles</span></div>
+        <div class="ds-item"><span class="ds-n">3</span><span class="ds-c">Industries</span></div>
+        <div class="ds-item"><span class="ds-n">4</span><span class="ds-c">Languages</span></div>
+        <div class="ds-item"><span class="ds-n">2</span><span class="ds-c">Continents</span></div>
+      </div>
+
+      <div class="blbl">Timeline</div>
+      <div class="tline">
+
+        <div class="titem">
+          <div class="btitle">Portfolio Manager</div>
+          <div class="bsub">Investment Society of Lausanne · Sep 2025 – Feb 2026</div>
+          <div class="btext">Supervised the society's investment portfolio fund. Provided financial oversight to the team and guided reports and investor presentations across the full portfolio lifecycle.</div>
+          <div class="trow">
+            <span class="tag g">Portfolio Oversight</span>
+            <span class="tag g">Financial Reporting</span>
+            <span class="tag">Team Leadership</span>
+          </div>
+        </div>
+
+        <div class="titem">
+          <div class="btitle">Portfolio Analyst</div>
+          <div class="bsub">Investment Society of Lausanne · Feb 2025 – Aug 2025</div>
+          <div class="btext">Conducted research on companies within the Consumption and General Public Services sectors. Analysed fundamentals and market trends to identify buy/sell opportunities.</div>
+          <div class="trow">
+            <span class="tag g">Equity Research</span>
+            <span class="tag g">Fundamental Analysis</span>
+            <span class="tag">Market Trends</span>
+          </div>
+        </div>
+
+        <div class="titem">
+          <div class="btitle">Brand Strategy Manager</div>
+          <div class="bsub">Rongyi Technology &amp; Development Co. · 2019 – 2024</div>
+          <div class="btext">Performed market analysis and devised the company's brand strategy through targeted social activities, securing 2 provincial key projects. Led full development cycle for 5 product launches.</div>
+          <div class="trow">
+            <span class="tag g">Brand Strategy</span>
+            <span class="tag">Market Analysis</span>
+            <span class="tag">Product Development</span>
+          </div>
+        </div>
+
+        <div class="titem">
+          <div class="btitle">Investment Financial Advisor &amp; Counter</div>
+          <div class="bsub">Bank of China · 2018 – 2019</div>
+          <div class="btext">Provided personalised investment plans for clients based on distinct financial goals. Assessed businesses and conducted product consultations. Contributed to the design and implementation of regional marketing plans and combined investments.
+             <p>Award: Employee of the Year, First Prize in Product Design </div>
+          <div class="trow">
+            <span class="tag g">Client Advisory</span>
+            <span class="tag g">Investment Planning</span>
+            <span class="tag">Retail Banking</span>
+          </div>
+        </div>
+
+        <div class="titem">
+          <div class="btitle">Art Instructor</div>
+          <div class="bsub">Freelance · 2022 – Present</div>
+          <div class="btext">Conducted artistic interaction and workshops for luxury brand events. 
+            <p>Represented and activated for Guerlain, HR, Dior, Shiseido, Armani, Hermès, LV, Chanel, and La Prairie.</p>
+          </div>
+          <div class="trow">
+            <span class="tag g">Luxury Brands</span>
+            <span class="tag g">Art Direction</span>
+            <span class="tag">Brand Activation</span>
+          </div>
+        </div>
+
+        <div class="titem">
+          <div class="btitle">Bilingual Host &amp; Event Planner</div>
+          <div class="bsub">Freelance · 2022 – Present</div>
+          <div class="btext">Hosted and organised high-profile bilingual events: 
+            <p>the Europe–China Youth Peace Forum —— Geneva</p>
+            <p>"Voices of Peace" Concert —— Geneva</p>
+            <p>CDIP Regional Exposition —— WIPO</p>
+            <p>the 75th anniversary gala of China–Switzerland diplomatic relations —— Morges</div>
+          <div class="trow">
+            <span class="tag g">Bilingual Hosting</span>
+            <span class="tag g">Event Planning</span>
+            <span class="tag">Cultural Diplomacy</span>
+          </div>
+        </div>
+
+        <div class="titem">
+          <div class="btitle">Director &amp; Host</div>
+          <div class="bsub">Babble Barbarian / Bei You Nan Man Podcast · 2024 – Present</div>
+          <div class="btext">Tracked hot topics and commercial insights for video and podcast production. Wrote scripts and managed full editing and post-production workflow independently.</div>
+          <div class="trow">
+            <span class="tag">Podcast Production</span>
+            <span class="tag">Scriptwriting</span>
+            <span class="tag">Video Editing</span>
+          </div>
+        </div>
+
+      </div><!-- /tline -->
+    </div><!-- /exp-wrap -->
+
+    <div class="proceed-zone">
+      <div class="proceed-line"></div>
+      <div class="proceed-label">Next · Exhibit IV</div>
+      <button class="proceed-btn" onclick="modal('p-hobbies','EX·IV','AFTER HOURS')">Proceed to Next Room</button>
+    </div>
+  </div><!-- /p-exp -->
+
+  <!-- ══ PAGE 5: HOBBIES / AFTER HOURS ══ -->
+  <div class="page state-hidden-right" id="p-hobbies">
+    <div class="hobbies-wrap">
+
+      <div class="exh-hero-band" style="margin-left:-4.5rem;margin-right:-4.5rem;">
+        <div class="ehb-grid"></div>
+        <div class="ehb-inner">
+          <div class="ehb-num">IV</div>
+          <div class="ehb-text">
+            <div class="ehb-eye">Exhibit IV — After Hours</div>
+            <div class="ehb-title">The Other Side of the Portfolio</div>
+            <div class="ehb-theme">Three disciplines. One sensibility. The pursuits that cannot be quantified — yet shape everything that can.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── IV.I: SPORT — feature card ── -->
+      <div class="sub-exh reveal">
+        <div class="sub-exh-header">
+          <div class="sub-exh-num">IV·I</div>
+          <div class="sub-exh-text">
+            <div class="sub-exh-eye">Sub-Exhibition · IV.I</div>
+            <div class="sub-exh-title">Sport</div>
+            <div class="sub-exh-theme">Discipline in motion — the body as a model of consistency.</div>
+          </div>
+        </div>
+
+        <p class="sub-exh-statement">Physical training sharpens the mental rigour that financial analysis demands. Sport is where strategy meets execution in real time — without a model to hide behind.</p>
+
+        <div class="sport-card">
+          <div class="sport-photo">
+             <img src="muscle.JPG" alt="Description" style="aspect-ratio:2/1; object-fit:cover; width:100%; height:100%; display:block;">
+          </div>
+          <div class="sport-body">
+            <div class="hb-num">I</div>
+            <div class="hb-name">Physical Discipline</div>
+            <div class="hb-desc">The discipline of the body is the discipline of the mind.</div>
+            <div class="hb-detail">I have balanced my professional life with a rigorous training regimen encompassing Krav Maga, Tennis, and consistent cardio. These disciplines have taught me that performance is the result of invisible preparation. Whether it’s on the court or during a high-intensity session, the goal remains the same: staying composed under pressure and pursuing excellence through repetition.</div>
+            <div class="hb-add">→ Consistent Cardio, Krav Maga, Tennis</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── IV.II: DRAWING — sub-exhibition with works grid ── -->
+      <div class="sub-exh reveal">
+        <div class="sub-exh-header">
+          <div class="sub-exh-num">IV·II</div>
+          <div class="sub-exh-text">
+            <div class="sub-exh-eye">Sub-Exhibition · IV.II</div>
+            <div class="sub-exh-title">Drawing</div>
+            <div class="sub-exh-theme">The eye trained to find structure in ambiguity.</div>
+          </div>
+        </div>
+
+        <p class="sub-exh-statement">To draw something well, you must understand it — not merely see it. This habit of structured looking migrates naturally into financial analysis, where pattern recognition and spatial reasoning matter enormously.</p>
+
+        <!-- Works grid — 3 columns, mixed sizes -->
+        <div class="works-grid col3">
+
+          <!-- Featured wide piece -->
+          <div class="work-piece wide">
+           <div class="work-frame">
+            <img src="drawing-featured.JPG" alt="Happy Ducks" style="aspect-ratio:2/1; object-fit:cover; filter: contrast(1.02);">
+           </div>
+           <div class="work-caption">
+           <div class="work-cap-title">Happy Ducks</div>
+           <div class="work-cap-meta">Sketch · 2012</div>
+           </div>
+          </div>
+
+          <!-- Piece 2 -->
+          <div class="work-piece">
+           <div class="work-frame">
+            <img src="Dawn.jpg" alt="Sketch" style="aspect-ratio:3/4; object-fit:cover;">
+           </div>
+           <div class="work-caption">
+            <div class="work-cap-title">Dawn in Village</div>
+            <div class="work-cap-meta">Gouache · 2021</div>
+           </div>
+          </div>
+
+          <!-- Piece 3 -->
+          <div class="work-piece">
+           <div class="work-frame">
+            <img src="Wolf.JPG" alt="Sketch" style="aspect-ratio:3/4; object-fit:cover;">
+           </div>
+           <div class="work-caption">
+            <div class="work-cap-title">Wolf</div>
+            <div class="work-cap-meta">Gouache · 2022</div>
+           </div>
+          </div>
+
+          <!-- Piece 4 -->
+<div class="work-piece">
+  <div class="work-frame">
+    <img src="Colosseo.JPG" alt="Detail" style="aspect-ratio:4/3; object-fit:cover;">
+    </div>
+  <div class="work-caption">
+    <div class="work-cap-title">Colosseo</div>
+    <div class="work-cap-meta">Sketch · 2012</div>
+  </div>
+</div>
+
+          <!-- Piece 5 -->
+<div class="work-piece">
+  <div class="work-frame">
+    <img src="Albert.JPG" alt="Detail" style="aspect-ratio:4/3; object-fit:cover;">
+    </div>
+  <div class="work-caption">
+    <div class="work-cap-title">Albert</div>
+    <div class="work-cap-meta">Sketch · 2020</div>
+  </div>
+</div>
+
+        </div><!-- /works-grid drawing -->
+
+        <div class="add-work-prompt">
+          + Add more works by duplicating a .work-piece block above
+        </div>
+      </div>
+
+      <!-- ── IV.III: PHOTOGRAPHY — sub-exhibition with works grid ── -->
+      <div class="sub-exh reveal">
+        <div class="sub-exh-header">
+          <div class="sub-exh-num">IV·III</div>
+          <div class="sub-exh-text">
+            <div class="sub-exh-eye">Sub-Exhibition · IV.III</div>
+            <div class="sub-exh-title">Photography</div>
+            <div class="sub-exh-theme">Framing the world is always an act of interpretation.</div>
+          </div>
+        </div>
+
+        <p class="sub-exh-statement">The editorial eye applied to a composition is the same one applied to a data story: what to include, what to cut, and where to place the emphasis that changes everything.</p>
+
+        <!-- Photography grid — 4 columns, more pieces, editorial layout -->
+        <div class="works-grid col4">
+
+          <!-- Shot 1 — featured wide -->
+          <div class="work-piece wide">
+            <div class="work-frame">
+             <img src="Swans.JPG" class="ethereal-photo" style="aspect-ratio:2/1; object-fit:cover;">
+            </div>
+            <div class="work-caption">
+              <div class="work-cap-title">Equilibrium / Lac Léman</div>
+              <div class="work-cap-meta">46°26′N 6°33′E · 2026</div>
+            </div>
+          </div>
+
+          <!-- Shot 2 -->
+          <div class="work-piece">
+            <div class="work-frame">
+             <img src="Winter.JPG" class="ethereal-photo" style="aspect-ratio:3/4; object-fit:cover;">
+            </div>
+            <div class="work-caption">
+              <div class="work-cap-title">Winter / Montreux</div>
+              <div class="work-cap-meta">46°26′06″N 6°54′45″E · 2025</div>
+            </div>
+          </div>
+
+          <!-- Shot 3 -->
+          <div class="work-piece">
+            <div class="work-frame">
+             <img src="The full moon in city.JPG" class="ethereal-photo" style="aspect-ratio:3/4; object-fit:cover;">
+            </div>
+            <div class="work-caption">
+              <div class="work-cap-title">Efficient Market Hypotheses / Lausanne</div>
+              <div class="work-cap-meta">46°32′N 6°38′E · 2024</div>
+            </div>
+          </div>
+
+          <!-- Shot 4 -->
+          <div class="work-piece">
+            <div class="work-frame">
+             <img src="White Noise.jpg" class="ethereal-photo" style="aspect-ratio:3/4; object-fit:cover;">
+            </div>
+            <div class="work-caption">
+              <div class="work-cap-title">White Noise / France</div>
+              <div class="work-cap-meta">48°51′24″N 2°21′08″E · 2024</div>
+            </div>
+          </div>
+
+          <!-- Shot 5 -->
+          <div class="work-piece">
+            <div class="work-frame">
+             <img src="Contrasting Liquidity.JPG" class="ethereal-photo" style="aspect-ratio:3/4; object-fit:cover;">
+            </div>
+            <div class="work-caption">
+              <div class="work-cap-title">Contrasting Liquidity / Basel</div>
+              <div class="work-cap-meta">47°33′N 7°35′E · 2025</div>
+            </div>
+          </div>
+
+          <!-- Shot 6 — wide closing piece -->
+          <div class="work-piece wide">
+            <div class="work-frame">
+             <img src="Sunset Settlement.JPG" class="ethereal-photo" style="aspect-ratio:2/1; object-fit:cover;">
+            </div>
+            <div class="work-caption">
+              <div class="work-cap-title">Sunset Settlement / Cabo da Roca
+</div>
+              <div class="work-cap-meta">38°47′N 9°30′E · 2026</div>
+            </div>
+          </div>
+
+        </div><!-- /works-grid photography -->
+
+        <div class="add-work-prompt">
+          + Add more shots by duplicating a .work-piece block above
+        </div>
+      </div>
+
+    </div><!-- /hobbies-wrap -->
+
+    <div class="proceed-zone">
+      <div class="proceed-line"></div>
+      <div class="proceed-label">Final Room — Exhibit V</div>
+      <button class="proceed-btn" onclick="modal('p-contact','EX·V','EXIT HALL')">Proceed to Next Room</button>
+    </div>
+  </div><!-- /p-hobbies -->
+
+  <!-- ══ PAGE 6: CONTACT / EXIT HALL ══ -->
+  <div class="page state-hidden-right" id="p-contact">
+    <div class="contact-inner">
+      <div class="ci-eye">Exhibit V — Exit Hall</div>
+      <div class="ci-rule"></div>
+      <div class="ci-title">Let Us<br>Speak</div>
+      <div class="ci-sub">The exhibition is complete. If a piece resonated — if you see potential for collaboration — the conversation begins here.</div>
+      <div class="ci-links">
+        <!-- Update these links with your real URLs -->
+        <a class="ci-lnk" href="mailto:jiali.wu007@gmail.com">jiali.wu007@gmail.com</a>
+        <a class="ci-lnk" href="tel:+41783333636">+41 78 333 36 36</a>
+        <a class="ci-lnk" href="https://ch.linkedin.com/in/jiali-wu-7b1433343" target="_blank">LinkedIn</a>
+        <a class="ci-lnk" href="Jiali Wu-CV- HEC Lausanne.pdf" target="_blank">Download CV</a>
+      </div>
+      <button class="ci-restart" onclick="goTo('p-home')">← Return to Entrance</button>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<script>
+/* ══════════════════════════════════════════
+   TICKER TAPE
+══════════════════════════════════════════ */
+const TICKER_ITEMS = [
+  { s:'JIALI.WU',     v:'OPEN',          g:true  },
+  { s:'HEC·MSC',      v:'2024–2026',     g:true  },
+  { s:'PYTHON',       v:'GARCH·VaR',     g:true  },
+  { s:'ISL·PMG',      v:'2025',          g:true  },
+  { s:'CARBON·ESG',   v:'NET ZERO',      g:true  },
+  { s:'4·LANG',       v:'ZH EN FR DE',   g:true  },
+  { s:'BRAND·STR',    v:'5 PRODUCTS',    g:true  },
+  { s:'LUXURY',       v:'CHANEL·DIOR·LV',g:true  },
+  { s:'PODCAST',      v:'BEI YOU NAN MAN',g:true },
+  { s:'RISK·MGT',     v:'ASSET·ALLOC',   g:true  },
+  { s:'BLACK-LITT',   v:'ERC·MVO',       g:true  },
+  { s:'BOC·ADVISOR',  v:'2018–2019',     g:true  },
+];
+
+(function buildTicker() {
+  const track = document.getElementById('ticker-t');
+  const html = TICKER_ITEMS.map(d =>
+    `<b>${d.s}</b><span class="${d.g ? 'g' : ''}">${d.v}</span>`
+  ).join('');
+  track.innerHTML = html + html;
+})();
+
+/* ══════════════════════════════════════════
+   CUSTOM CURSOR
+══════════════════════════════════════════ */
+const dot  = document.getElementById('cur-dot');
+const ring = document.getElementById('cur-ring');
+let mx = -100, my = -100, rx = -100, ry = -100;
+
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  dot.style.left = mx + 'px';
+  dot.style.top  = my + 'px';
+});
+
+// Ring lags behind with rAF
+(function animRing() {
+  rx += (mx - rx) * 0.12;
+  ry += (my - ry) * 0.12;
+  ring.style.left = rx + 'px';
+  ring.style.top  = ry + 'px';
+  requestAnimationFrame(animRing);
+})();
+
+// Expand ring on interactive elements
+document.addEventListener('mouseover', e => {
+  if (e.target.closest('button, a, .salon-card, .work-piece, [onclick]')) {
+    ring.classList.add('expand');
+    dot.classList.add('hide');
+  }
+});
+document.addEventListener('mouseout', e => {
+  if (e.target.closest('button, a, .salon-card, .work-piece, [onclick]')) {
+    ring.classList.remove('expand');
+    dot.classList.remove('hide');
+  }
+});
+
+/* ══════════════════════════════════════════
+   PAGE NAVIGATION & 3D TRANSITIONS
+══════════════════════════════════════════ */
+const PAGE_ORDER = ['p-home', 'p-index', 'p-about', 'p-edu', 'p-exp', 'p-hobbies', 'p-contact'];
+const ROOM_NAMES = ['Entrance', 'Index', 'Self Portrait', 'The Atelier', 'The Ledger', 'After Hours', 'Exit Hall'];
+let currentPage = 'p-home';
+let transitioning = false;
+
+function updateProgress(id) {
+  const idx   = PAGE_ORDER.indexOf(id);
+  const pct   = idx === 0 ? 0 : (idx / (PAGE_ORDER.length - 1)) * 100;
+  document.getElementById('progress-fill').style.height = pct + '%';
+  document.getElementById('room-num').textContent = idx + 1;
+}
+
+function goTo(id) {
+  if (transitioning || id === currentPage) return;
+  transitioning = true;
+
+  const fromEl  = document.getElementById(currentPage);
+  const toEl    = document.getElementById(id);
+  const fromIdx = PAGE_ORDER.indexOf(currentPage);
+  const toIdx   = PAGE_ORDER.indexOf(id);
+  const forward = toIdx >= fromIdx;
+
+  fromEl.classList.remove('state-active');
+  fromEl.classList.add(forward ? 'state-hidden-left' : 'state-hidden-right');
+
+  toEl.classList.remove('state-hidden-left', 'state-hidden-right', 'state-active');
+  toEl.classList.add(forward ? 'state-hidden-right' : 'state-hidden-left');
+
+  toEl.getBoundingClientRect(); // force reflow
+
+  toEl.classList.remove('state-hidden-right', 'state-hidden-left');
+  toEl.classList.add('state-active');
+  toEl.scrollTop = 0;
+
+  currentPage = id;
+  updateProgress(id);
+
+  // Trigger scroll reveals for the new page after transition
+  setTimeout(() => {
+    triggerReveals(toEl);
+    transitioning = false;
+  }, 200);
+}
+
+/* ══════════════════════════════════════════
+   SCROLL-TRIGGERED FADE-INS
+══════════════════════════════════════════ */
+function triggerReveals(pageEl) {
+  const items = pageEl.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+
+  items.forEach(el => {
+    el.classList.remove('visible');
+    observer.observe(el);
+  });
+
+  // Also immediately reveal anything already in view
+  setTimeout(() => {
+    items.forEach(el => {
+      const rect = el.getBoundingClientRect();
+      if (rect.top < window.innerHeight) el.classList.add('visible');
+    });
+  }, 100);
+}
+
+// Add reveal class to key content blocks across all pages
+document.querySelectorAll(
+  '.placard, .two-col, .titem, .data-strip, .sport-card, .sub-exh, .works-grid, .about-scroll, .skills-section, .dstrip, .blbl'
+).forEach(el => el.classList.add('reveal'));
+
+// Init reveal for the active home page
+triggerReveals(document.getElementById('p-home'));
+
+/* ══════════════════════════════════════════
+   BUY / HOLD MODAL
+══════════════════════════════════════════ */
+const MODAL_COPY = {
+  'p-about':   { sym:'JW · EX.I',   price:'+3.2%',   title:'Entering Exhibit I — Self Portrait'  },
+  'p-edu':     { sym:'JW · EX.II',  price:'+1.8%',   title:'Entering Exhibit II — The Atelier'   },
+  'p-exp':     { sym:'JW · EX.III', price:'+5.1%',   title:'Entering Exhibit III — The Ledger'   },
+  'p-hobbies': { sym:'JW · EX.IV',  price:'+2.7%',   title:'Entering Exhibit IV — After Hours'   },
+  'p-contact': { sym:'JW · EX.V',   price:'ACQUIRE',  title:'Entering Exhibit V — Exit Hall'      },
+};
+
+let modalTarget = null;
+
+function modal(targetId, sym, price) {
+  modalTarget = targetId;
+  const d = MODAL_COPY[targetId] || { sym: sym || 'JW·EX', price: price || 'BUY', title: 'Proceed to next room?' };
+  document.getElementById('msym').textContent  = d.sym;
+  document.getElementById('mprice').textContent = d.price;
+  document.getElementById('mtitle').textContent = d.title;
+  document.getElementById('modal').classList.add('open');
+}
+
+function modalHold() {
+  document.getElementById('modal').classList.remove('open');
+  modalTarget = null;
+}
+
+function modalBuy() {
+  document.getElementById('modal').classList.remove('open');
+  if (modalTarget) { goTo(modalTarget); modalTarget = null; }
+}
+
+document.getElementById('modal').addEventListener('click', function(e) {
+  if (e.target === this) modalHold();
+});
+
+// Init progress
+updateProgress('p-home');
+</script>
+
+</body>
+</html>
